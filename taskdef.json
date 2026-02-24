@@ -1,0 +1,23 @@
+{
+    "family": "strapi-task",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "strapi-container",
+            "image": "<IMAGE_NAME>", 
+            "portMappings": [
+                {
+                    "containerPort": 1337,
+                    "hostPort": 1337,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024"
+}

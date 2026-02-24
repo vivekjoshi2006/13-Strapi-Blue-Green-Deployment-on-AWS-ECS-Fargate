@@ -1,0 +1,24 @@
+{
+  "name": "strapi-ecs-monitoring",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Strapi application for ECS Fargate with Monitoring",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi"
+  },
+  "dependencies": {
+    "@strapi/strapi": "4.15.5",
+    "@strapi/plugin-users-permissions": "4.15.5",
+    "@strapi/plugin-i18n": "4.15.5",
+    "sqlite3": "5.1.6"
+  },
+  "author": "Vivek Joshi",
+  "engines": {
+    "node": ">=18.0.0 <=20.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
+}

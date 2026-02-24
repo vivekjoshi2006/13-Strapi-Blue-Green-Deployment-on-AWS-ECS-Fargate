@@ -1,0 +1,29 @@
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+.terraform.lock.hcl
+
+# --- AWS & Heavy Binaries ---
+terraform/aws/
+awscliv2.zip
+*.zip
+*.exe
+*.bin
+
+# --- Strapi / Node.js ---
+node_modules/
+.tmp/
+.cache/
+build/
+dist/
+.env
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db

@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "maggi_recipes",
+  "info": {
+    "singularName": "maggi-recipe",
+    "pluralName": "maggi-recipes",
+    "displayName": "Maggi_Recipes"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Title": {
+      "type": "text"
+    }
+  }
+}

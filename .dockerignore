@@ -1,0 +1,35 @@
+# Dependency directories
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+.cache/
+build/
+dist/
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Version control
+.git
+.gitignore
+.github
+
+# Terraform files
+.terraform/
+terraform.tfstate*
+*.tfvars
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+.tmp/
+.cache/
+data/
