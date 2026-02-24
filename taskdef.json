@@ -1,10 +1,13 @@
 {
     "family": "strapi-task",
     "networkMode": "awsvpc",
+    "executionRoleArn": "arn:aws:iam::811738710312:role/strapi-ecs-execution-role",
+    "taskRoleArn": "arn:aws:iam::811738710312:role/strapi-ecs-execution-role",
     "containerDefinitions": [
         {
             "name": "strapi-container",
-            "image": "<IMAGE_NAME>", 
+            "image": "<IMAGE_NAME>",
+            "essential": true,
             "portMappings": [
                 {
                     "containerPort": 1337,
@@ -12,7 +15,14 @@
                     "protocol": "tcp"
                 }
             ],
-            "essential": true
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/strapi",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
         }
     ],
     "requiresCompatibilities": [
