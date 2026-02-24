@@ -1,9 +1,8 @@
-# --- 1. PROVIDER ---
 provider "aws" {
   region = "us-east-1"
 }
 
-# --- 2. NETWORK DATA ---
+# --- 1. NETWORK DATA ---
 data "aws_vpc" "selected" {
   default = true
 }
@@ -11,8 +10,8 @@ data "aws_vpc" "selected" {
 data "aws_availability_zones" "available" {}
 
 data "aws_subnet" "one_per_az" {
-  for_each = toset(data.aws_availability_zones.available.names)
-  vpc_id   = data.aws_vpc.selected.id
+  for_each          = toset(data.aws_availability_zones.available.names)
+  vpc_id            = data.aws_vpc.selected.id
   availability_zone = each.value
 
   filter {
@@ -25,10 +24,10 @@ locals {
   subnet_ids = [for s in data.aws_subnet.one_per_az : s.id]
 }
 
-# --- 3. SECURITY GROUPS ---
-resource "aws_security_group" "alb_sg_v3" {
-  name        = "strapi-alb-sg-v3"
-  vpc_id      = data.aws_vpc.selected.id
+# --- 2. SECURITY GROUPS ---
+resource "aws_security_group" "alb_sg_final" {
+  name   = "strapi-alb-sg-final-deploy"
+  vpc_id = data.aws_vpc.selected.id
 
   ingress {
     from_port   = 80
@@ -45,15 +44,15 @@ resource "aws_security_group" "alb_sg_v3" {
   }
 }
 
-resource "aws_security_group" "ecs_sg_v3" {
-  name        = "strapi-ecs-sg-v3"
-  vpc_id      = data.aws_vpc.selected.id
+resource "aws_security_group" "ecs_sg_final" {
+  name   = "strapi-ecs-sg-final-deploy"
+  vpc_id = data.aws_vpc.selected.id
 
   ingress {
     from_port       = 1337
     to_port         = 1337
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg_v3.id]
+    security_groups = [aws_security_group.alb_sg_final.id]
   }
 
   egress {
@@ -64,50 +63,56 @@ resource "aws_security_group" "ecs_sg_v3" {
   }
 }
 
-# --- 4. LOAD BALANCER & TARGET GROUPS ---
-resource "aws_lb" "strapi_v3" {
-  name               = "strapi-alb-v3"
+# --- 3. ALB & TWO TARGET GROUPS ---
+resource "aws_lb" "strapi" {
+  name               = "strapi-alb-final-deploy"
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg_v3.id]
+  security_groups    = [aws_security_group.alb_sg_final.id]
   subnets            = local.subnet_ids
 }
 
-resource "aws_lb_target_group" "blue_v3" {
-  name                 = "strapi-tg-blue-v3"
-  port                 = 1337
-  protocol             = "HTTP"
-  target_type          = "ip"
-  vpc_id               = data.aws_vpc.selected.id
-  deregistration_delay = 30 
+resource "aws_lb_target_group" "blue" {
+  name        = "strapi-tg-blue-final-deploy"
+  port        = 1337
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = data.aws_vpc.selected.id
+
+  health_check {
+    path = "/"
+  }
 }
 
-resource "aws_lb_target_group" "green_v3" {
-  name                 = "strapi-tg-green-v3"
-  port                 = 1337
-  protocol             = "HTTP"
-  target_type          = "ip"
-  vpc_id               = data.aws_vpc.selected.id
-  deregistration_delay = 30 
+resource "aws_lb_target_group" "green" {
+  name        = "strapi-tg-green-final-deploy"
+  port        = 1337
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = data.aws_vpc.selected.id
+
+  health_check {
+    path = "/"
+  }
 }
 
-resource "aws_lb_listener" "http_v3" {
-  load_balancer_arn = aws_lb.strapi_v3.arn
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.strapi.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.blue_v3.arn
+    target_group_arn = aws_lb_target_group.blue.arn
   }
 }
 
-# --- 5. ECS CLUSTER & TASK DEFINITION ---
-resource "aws_ecs_cluster" "main_v3" { 
-  name = "strapi-cluster-v3" 
+# --- 4. ECS CLUSTER & TASK ---
+resource "aws_ecs_cluster" "main" {
+  name = "strapi-cluster-final-deploy"
 }
 
-resource "aws_ecs_task_definition" "strapi_v3" {
-  family                   = "strapi-task-v3"
+resource "aws_ecs_task_definition" "strapi" {
+  family                   = "strapi-task-final-deploy"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -126,32 +131,27 @@ resource "aws_ecs_task_definition" "strapi_v3" {
   }])
 }
 
-# --- 6. ECS SERVICE (Changed to Standard Deployment for now) ---
-resource "aws_ecs_service" "strapi_v3" {
-  name            = "strapi-service-v3"
-  cluster         = aws_ecs_cluster.main_v3.id
-  task_definition = aws_ecs_task_definition.strapi_v3.arn
+# --- 5. ECS SERVICE ---
+resource "aws_ecs_service" "strapi" {
+  name            = "strapi-service-final-deploy"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.strapi.arn
   launch_type     = "FARGATE"
   desired_count   = 1
 
-  deployment_controller { 
-    type = "ECS" 
-  }
-
   network_configuration {
     subnets          = local.subnet_ids
-    security_groups  = [aws_security_group.ecs_sg_v3.id]
+    security_groups  = [aws_security_group.ecs_sg_final.id]
     assign_public_ip = true
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.blue_v3.arn
+    target_group_arn = aws_lb_target_group.blue.arn
     container_name   = "strapi-container"
     container_port   = 1337
   }
 }
 
-# --- OUTPUTS ---
 output "alb_dns_name" {
-  value = aws_lb.strapi_v3.dns_name
+  value = aws_lb.strapi.dns_name
 }
