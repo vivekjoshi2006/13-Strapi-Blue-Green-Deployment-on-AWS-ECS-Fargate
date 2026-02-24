@@ -1,0 +1,29 @@
+{
+    "family": "strapi-task-deploy",
+    "containerDefinitions": [
+        {
+            "name": "strapi-container",
+            "image": "strapi/strapi:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 1337,
+                    "hostPort": 1337,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": []
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "networkMode": "awsvpc",
+    "cpu": "512",
+    "memory": "1024",
+    "executionRoleArn": "arn:aws:iam::811738710312:role/strapi-ecs-execution-role",
+    "taskRoleArn": "arn:aws:iam::811738710312:role/strapi-ecs-execution-role"
+}
