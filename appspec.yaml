@@ -3,7 +3,13 @@ Resources:
   - TargetService:
       Type: AWS::ECS::Service
       Properties:
-        TaskDefinition: <TASK_DEFINITION> # CodeDeploy will replace this placeholder
+        TaskDefinition: "arn:aws:ecs:us-east-1:811738710312:task-definition/strapi-task-unique"
         LoadBalancerInfo:
           ContainerName: "strapi-container"
           ContainerPort: 1337
+Hooks:
+  - BeforeInstall: "LambdaFunctionToValidateBeforeInstall"
+  - AfterInstall: "LambdaFunctionToValidateAfterInstall"
+  - AfterAllowTestTraffic: "LambdaFunctionToValidateTestTraffic"
+  - BeforeAllowTraffic: "LambdaFunctionToValidateBeforeTraffic"
+  - AfterAllowTraffic: "LambdaFunctionToValidateAfterTraffic"
