@@ -1,5 +1,5 @@
 {
-    "family": "strapi-task-final-fix",
+    "family": "strapi-task",
     "containerDefinitions": [
         {
             "name": "strapi-container",
@@ -7,8 +7,8 @@
             "cpu": 0,
             "portMappings": [
                 {
-                    "container_port": 1337,
-                    "host_port": 1337,
+                    "containerPort": 1337,
+                    "hostPort": 1337,
                     "protocol": "tcp"
                 }
             ],
@@ -24,6 +24,6 @@
     "networkMode": "awsvpc",
     "cpu": "256",
     "memory": "512",
-    "executionRoleArn": "arn:aws:iam::811738710312:role/strapi-ecs-execution-role",
-    "taskRoleArn": "arn:aws:iam::811738710312:role/strapi-ecs-execution-role"
+    "executionRoleArn": "arn:aws:iam::811738710312:role/LabRole",
+    "taskRoleArn": "arn:aws:iam::811738710312:role/LabRole"
 }

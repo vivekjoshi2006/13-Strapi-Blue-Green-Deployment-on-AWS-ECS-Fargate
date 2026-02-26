@@ -13,7 +13,7 @@ data "aws_subnets" "default" {
 
 # --- 2. SECURITY GROUPS ---
 resource "aws_security_group" "alb_sg" {
-  name   = "strapi-alb-sg-final-fix"
+  name   = "strapi-alb-sg-final-v3"
   vpc_id = data.aws_vpc.default.id
   ingress {
     from_port   = 80
@@ -30,7 +30,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "ecs_sg" {
-  name   = "strapi-ecs-sg-final-fix"
+  name   = "strapi-ecs-sg-final-v3"
   vpc_id = data.aws_vpc.default.id
   ingress {
     from_port       = 1337
@@ -48,22 +48,18 @@ resource "aws_security_group" "ecs_sg" {
 
 # --- 3. LOAD BALANCER ---
 resource "aws_lb" "main" {
-  name               = "strapi-alb-final-fix"
+  name               = "strapi-alb-final-v3"
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = data.aws_subnets.default.ids
 }
 
 resource "aws_lb_target_group" "tg" {
-  name        = "tg-strapi-final-fix"
+  name        = "tg-strapi-final-v3"
   port        = 1337
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = data.aws_vpc.default.id
-  health_check {
-    path = "/"
-    matcher = "200-399"
-  }
 }
 
 resource "aws_lb_listener" "http" {
@@ -76,19 +72,21 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# --- 4. ECS CLUSTER & TASK ---
+# --- 4. ECS CLUSTER & TASK (REMOVED CUSTOM ROLE TO BYPASS PASSROLE ERROR) ---
 resource "aws_ecs_cluster" "main" {
-  name = "strapi-cluster-final-fix"
+  name = "strapi-cluster-final-v3"
 }
 
 resource "aws_ecs_task_definition" "strapi" {
-  family                   = "strapi-task-final-fix"
+  family                   = "strapi-task-final-v3"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
-  execution_role_arn       = "arn:aws:iam::811738710312:role/strapi-ecs-execution-role"
-  task_role_arn            = "arn:aws:iam::811738710312:role/strapi-ecs-execution-role"
+  
+  execution_role_arn       = "arn:aws:iam::811738710312:role/LabRole"
+  task_role_arn            = "arn:aws:iam::811738710312:role/LabRole"
+
   container_definitions    = jsonencode([{
     name  = "strapi-container"
     image = "strapi/strapi:latest"
@@ -96,20 +94,17 @@ resource "aws_ecs_task_definition" "strapi" {
   }])
 }
 
-# --- 5. ECS SERVICE ---
 resource "aws_ecs_service" "strapi" {
-  name            = "strapi-service-final-fix"
+  name            = "strapi-service-final-v3"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.strapi.arn
   launch_type     = "FARGATE"
   desired_count   = 1
-
   network_configuration {
     subnets          = data.aws_subnets.default.ids
     security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
-
   load_balancer {
     target_group_arn = aws_lb_target_group.tg.arn
     container_name   = "strapi-container"
