@@ -2,18 +2,22 @@ name: Deploy to Amazon ECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 env:
   AWS_REGION: us-east-1
-  ECS_SERVICE: strapi-service-final-deploy
-  ECS_CLUSTER: strapi-cluster-final-deploy
+  ECS_SERVICE: strapi-service-v-final   # <--- Corrected
+  ECS_CLUSTER: strapi-cluster-v-final   # <--- Corrected
   ECS_TASK_DEFINITION: .aws/task-definition.json
   CONTAINER_NAME: strapi-container
 
 jobs:
   deploy:
+    name: Deploy
     runs-on: ubuntu-latest
+    environment: production
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,6 +27,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
@@ -31,7 +36,7 @@ jobs:
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: strapi/strapi:latest 
+          image: strapi/strapi:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
