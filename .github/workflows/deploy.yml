@@ -7,8 +7,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECS_SERVICE: strapi-service-v-final   # <--- Corrected
-  ECS_CLUSTER: strapi-cluster-v-final   # <--- Corrected
+  ECS_SERVICE: strapi-service-v-final
+  ECS_CLUSTER: strapi-cluster-v-final
   ECS_TASK_DEFINITION: .aws/task-definition.json
   CONTAINER_NAME: strapi-container
 
@@ -16,7 +16,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout

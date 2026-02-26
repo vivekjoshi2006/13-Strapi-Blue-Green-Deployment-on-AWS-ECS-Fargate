@@ -113,7 +113,7 @@ resource "aws_ecs_task_definition" "strapi" {
   }])
 }
 
-# --- 5. ECS SERVICE (Corrected load_balancer block) ---
+# --- 5. ECS SERVICE ---
 resource "aws_ecs_service" "strapi" {
   name            = "strapi-service-v-final"
   cluster         = aws_ecs_cluster.main.id
@@ -122,7 +122,7 @@ resource "aws_ecs_service" "strapi" {
   desired_count   = 1
 
   deployment_controller {
-    type = "CODE_DEPLOY"
+    type = "ECS"
   }
 
   network_configuration {
